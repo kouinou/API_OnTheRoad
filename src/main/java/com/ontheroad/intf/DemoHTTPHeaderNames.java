@@ -5,6 +5,9 @@ package com.ontheroad.intf;
  */
 public interface DemoHTTPHeaderNames {
 
-    public static final String SERVICE_KEY = "service_key";
+
     public static final String AUTH_TOKEN = "auth_token";
+    public static final String USERNAME = "username";
+    public static final String USERID = "user_id";
+
 }

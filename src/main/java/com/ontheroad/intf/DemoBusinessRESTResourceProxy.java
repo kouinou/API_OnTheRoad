@@ -1,5 +1,7 @@
 package com.ontheroad.intf;
 
+import com.ontheroad.model.Person;
+
 import javax.ws.rs.*;
 import javax.ejb.Local;
 import javax.ws.rs.core.Context;
@@ -27,12 +29,12 @@ public interface DemoBusinessRESTResourceProxy extends Serializable {
     @GET
     @Path( "demo-get-method" )
     @Produces( MediaType.APPLICATION_JSON )
-    Response demoGetMethod();
+    Response demoGetMethod(@Context HttpHeaders httpHeaders);
 
     @POST
     @Path( "demo-post-method" )
     @Produces( MediaType.APPLICATION_JSON )
-    Response demoPostMethod();
+    Response demoPostMethod(@Context HttpHeaders httpHeaders);
 
     @POST
     @Path( "logout" )

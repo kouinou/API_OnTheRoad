@@ -1,5 +1,7 @@
 package com.ontheroad.service;
 
+import com.ontheroad.intf.DemoHTTPHeaderNames;
+
 import javax.security.auth.login.LoginException;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
@@ -17,10 +19,10 @@ public final class DemoAuthenticator {
     private final Map<String, String> usersStorage = new HashMap();
 
     //Tablr <service_key, username>
-    private final Map<String, String> serviceKeysStorage = new HashMap();
+    private final Map<String, Integer> idStorage = new HashMap();
 
-    //Table <service_key, auth_token>
-    private final Map<String, String> authorizationTokensStorage = new HashMap();
+    //Table <idUser, auth_token>
+    private final Map<String, Integer> authorizationTokensStorage = new HashMap();
 
     private DemoAuthenticator(){
 
@@ -29,8 +31,8 @@ public final class DemoAuthenticator {
         usersStorage.put("username2", "password2");
         usersStorage.put("username3", "password3");
 
-        serviceKeysStorage.put( "f80ebc87-ad5c-4b29-9366-5359768df5a1", "username1" );
-        serviceKeysStorage.put( "3b91cab8-926f-49b6-ba00-920bcf934c2a", "username2" );
+        idStorage.put( "username1", 1 );
+        idStorage.put( "username2", 2 );
     }
 
     public static DemoAuthenticator getInstance(){
@@ -42,14 +44,13 @@ public final class DemoAuthenticator {
         return INSTANCE;
     }
 
-    public String login( String serviceKey, String username, String password ) throws LoginException {
-        if ( serviceKeysStorage.containsKey( serviceKey ) ) {
-            String usernameMatch = serviceKeysStorage.get( serviceKey );
+    public Map<String, String> login(String username, String password ) throws LoginException {
 
-            if ( usernameMatch.equals( username ) && usersStorage.containsKey( username ) ) {
+
+            if ( usersStorage.containsKey( username )) {
                 String passwordMatch = usersStorage.get( username );
 
-                if ( passwordMatch.equals( password ) ) {
+                if ( passwordMatch.equals(password) ) {
 
                     /**
                      * Once all params are matched, the authToken will be
@@ -59,12 +60,18 @@ public final class DemoAuthenticator {
                      * the login session
                      */
                     String authToken = UUID.randomUUID().toString();
-                    authorizationTokensStorage.put( authToken, username );
+                    authorizationTokensStorage.put( authToken, idStorage.get(username));
 
-                    return authToken;
+                    Map<String, String> tempTokensStorage = new HashMap();
+
+                    tempTokensStorage.put(DemoHTTPHeaderNames.AUTH_TOKEN, authToken);
+                    tempTokensStorage.put(DemoHTTPHeaderNames.USERID, idStorage.get(username).toString());
+
+
+                    return tempTokensStorage;
                 }
             }
-        }
+
 
         throw new LoginException( "Don't Come Here Again!" );
     }
@@ -73,22 +80,22 @@ public final class DemoAuthenticator {
      * The method that pre-validates if the client which invokes the REST API is
      * from a authorized and authenticated source.
      *
-     * @param serviceKey The service key
+     * @param userId
      * @param authToken The authorization token generated after login
      * @return TRUE for acceptance and FALSE for denied.
      */
-    public boolean isAuthTokenValid( String serviceKey, String authToken ) {
-        if ( isServiceKeyValid( serviceKey ) ) {
-            String usernameMatch1 = serviceKeysStorage.get( serviceKey );
+    public boolean isAuthTokenValid(int userId, String authToken ) {
 
-            if ( authorizationTokensStorage.containsKey( authToken ) ) {
-                String usernameMatch2 = authorizationTokensStorage.get( authToken );
 
-                if ( usernameMatch1.equals( usernameMatch2 ) ) {
+
+            if ( authorizationTokensStorage.containsKey(authToken) ) {
+                int userIdMatch = authorizationTokensStorage.get( authToken );
+
+                if ( userIdMatch == userId) {
                     return true;
                 }
             }
-        }
+
 
         return false;
     }
@@ -96,22 +103,20 @@ public final class DemoAuthenticator {
     /**
      * This method checks is the service key is valid
      *
-     * @param serviceKey
+     *@param userId
+     * @param authToken
      * @return TRUE if service key matches the pre-generated ones in service key
      * storage. FALSE for otherwise.
      */
-    public boolean isServiceKeyValid( String serviceKey ) {
-        return serviceKeysStorage.containsKey( serviceKey );
-    }
 
-    public void logout( String serviceKey, String authToken ) throws GeneralSecurityException {
-        if ( serviceKeysStorage.containsKey( serviceKey ) ) {
-            String usernameMatch1 = serviceKeysStorage.get( serviceKey );
+
+    public void logout(int userId, String authToken ) throws GeneralSecurityException {
+
 
             if ( authorizationTokensStorage.containsKey( authToken ) ) {
-                String usernameMatch2 = authorizationTokensStorage.get( authToken );
+                int userIdMatch = authorizationTokensStorage.get( authToken );
 
-                if ( usernameMatch1.equals( usernameMatch2 ) ) {
+                if ( userIdMatch == userId ) {
 
                     /**
                      * When a client logs out, the authentication token will be
@@ -121,7 +126,7 @@ public final class DemoAuthenticator {
                     return;
                 }
             }
-        }
+
 
         throw new GeneralSecurityException( "Invalid service key and authorization token match." );
     }

@@ -31,27 +31,23 @@ public class DemoRESTRequestFilter implements ContainerRequestFilter {
         if ( requestCtx.getRequest().getMethod().equals( "OPTIONS" ) ) {
             requestCtx.abortWith( Response.status(Response.Status.OK).build() );
 
-            return;
+           return;
         }
 
         // Then check is the service key exists and is valid.
         DemoAuthenticator demoAuthenticator = DemoAuthenticator.getInstance();
-        String serviceKey = requestCtx.getHeaderString( DemoHTTPHeaderNames.SERVICE_KEY );
+        //String username = requestCtx.getHeaderString( DemoHTTPHeaderNames.USERNAME );
 
-        if ( !demoAuthenticator.isServiceKeyValid( serviceKey ) ) {
-            // Kick anyone without a valid service key
-            requestCtx.abortWith( Response.status( Response.Status.UNAUTHORIZED ).build() );
 
-            return;
-        }
 
         // For any pther methods besides login, the authToken must be verified
-        System.out.println(path);
+
         if ( !path.startsWith( "demo-business-resource/login" ) ) {
-            String authToken = requestCtx.getHeaderString( DemoHTTPHeaderNames.AUTH_TOKEN );
+            String user_id = requestCtx.getHeaderString( "user_id" );
+            String authToken = requestCtx.getHeaderString( "auth_token" );
 
             // if it isn't valid, just kick them out.
-            if ( !demoAuthenticator.isAuthTokenValid( serviceKey, authToken ) ) {
+            if ( !demoAuthenticator.isAuthTokenValid( Integer.parseInt(user_id), authToken ) ) {
                 requestCtx.abortWith( Response.status( Response.Status.UNAUTHORIZED ).build() );
             }
         }

@@ -1,7 +1,9 @@
 package com.ontheroad.resource;
 
+import com.google.gson.Gson;
 import com.ontheroad.intf.DemoBusinessRESTResourceProxy;
 import com.ontheroad.intf.DemoHTTPHeaderNames;
+import com.ontheroad.model.Person;
 import com.ontheroad.service.DemoAuthenticator;
 
 import javax.ejb.Stateless;
@@ -14,6 +16,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.*;
 import java.security.GeneralSecurityException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Kouinou on 24/11/2015.
@@ -32,19 +36,22 @@ public class DemoBusinessRESTResource implements DemoBusinessRESTResourceProxy {
             @FormParam( "password" ) String password ) {
 
         DemoAuthenticator demoAuthenticator = DemoAuthenticator.getInstance();
-        String serviceKey = httpHeaders.getHeaderString(DemoHTTPHeaderNames.SERVICE_KEY);
+
 
         try {
-            String authToken = demoAuthenticator.login(serviceKey, username, password);
+            Map<String, String> authToken = demoAuthenticator.login(username, password);
 
             JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
-            jsonObjBuilder.add("auth_token", authToken);
+            jsonObjBuilder.add(DemoHTTPHeaderNames.USERID, Integer.parseInt(authToken.get(DemoHTTPHeaderNames.USERID)));
+            jsonObjBuilder.add(DemoHTTPHeaderNames.AUTH_TOKEN, authToken.get(DemoHTTPHeaderNames.AUTH_TOKEN));
+
             JsonObject jsonObj = jsonObjBuilder.build();
 
             return getNoCacheResponseBuilder(Response.Status.OK).entity(jsonObj.toString()).build();
 
         } catch (final LoginException ex) {
             JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
+
             jsonObjBuilder.add("message", "Problem matching service key, username and password");
             JsonObject jsonObj = jsonObjBuilder.build();
 
@@ -53,20 +60,48 @@ public class DemoBusinessRESTResource implements DemoBusinessRESTResourceProxy {
 
     }
 
-    @Override
-    public Response demoGetMethod() {
-        JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
-        jsonObjBuilder.add( "message", "Executed demoGetMethod" );
-        JsonObject jsonObj = jsonObjBuilder.build();
 
-        return getNoCacheResponseBuilder( Response.Status.OK ).entity( jsonObj.toString() ).build();
+    @Override
+    @Produces( MediaType.APPLICATION_JSON )
+    public Response demoGetMethod(@Context HttpHeaders httpHeaders) {
+
+
+        Person p = new Person();
+        p.setFirstName("Nabi");
+        p.setLastName("Zamani");
+        //p.setDateOfBirth("01.01.2012");
+
+        p.setCitizenships( new String[]{"German", "Persian"} );
+
+
+        Map<String, Object> creditCards = new HashMap<String, Object>();
+        creditCards.put("MasterCard", "1234 1234 1234 1234");
+        creditCards.put("Visa", "1234 1234 1234 1234");
+        creditCards.put("dummy", true);
+        p.setCreditCards(creditCards);
+
+        System.out.println("REST call...");
+
+
+
+        //return Response.ok().entity(p).build();
+        //return p;
+
+        Gson gson = new Gson();
+
+        // convert java object to JSON format,
+        // and returned as JSON formatted string
+        String json = gson.toJson(p);
+        return getNoCacheResponseBuilder( Response.Status.OK ).entity( json ).build();
     }
 
     @Override
-    public Response demoPostMethod() {
+    public Response demoPostMethod(@Context HttpHeaders httpHeaders) {
         JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
         jsonObjBuilder.add( "message", "Executed demoPostMethod" );
         JsonObject jsonObj = jsonObjBuilder.build();
+
+
 
         return getNoCacheResponseBuilder( Response.Status.ACCEPTED ).entity( jsonObj.toString() ).build();
     }
@@ -76,10 +111,10 @@ public class DemoBusinessRESTResource implements DemoBusinessRESTResourceProxy {
             @Context HttpHeaders httpHeaders ) {
         try {
             DemoAuthenticator demoAuthenticator = DemoAuthenticator.getInstance();
-            String serviceKey = httpHeaders.getHeaderString( DemoHTTPHeaderNames.SERVICE_KEY );
+            String userID = httpHeaders.getHeaderString(DemoHTTPHeaderNames.USERID);
             String authToken = httpHeaders.getHeaderString( DemoHTTPHeaderNames.AUTH_TOKEN );
 
-            demoAuthenticator.logout( serviceKey, authToken );
+            demoAuthenticator.logout( Integer.parseInt(userID), authToken );
 
             return getNoCacheResponseBuilder( Response.Status.NO_CONTENT ).build();
         } catch ( final GeneralSecurityException ex ) {
