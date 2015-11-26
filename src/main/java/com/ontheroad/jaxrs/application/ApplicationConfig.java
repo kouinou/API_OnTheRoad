@@ -11,7 +11,7 @@ import java.util.Set;
  * Created by Kouinou on 24/11/2015.
  */
 
-@ApplicationPath("/service")
+@ApplicationPath("/")
 public class ApplicationConfig extends Application {
 
     @Override
@@ -31,6 +31,8 @@ public class ApplicationConfig extends Application {
 
         resources.add(com.ontheroad.jaxrs.provider.MyJacksonProvider.class);
         resources.add(com.ontheroad.resource.PersonResource.class);
+        resources.add(com.ontheroad.intf.DemoBusinessRESTResourceProxy.class);
+        //resources.add(com.ontheroad.resource.DemoBusinessRESTResource.class);
 
         //==> we could also choose packages, see below getProperties()
 
