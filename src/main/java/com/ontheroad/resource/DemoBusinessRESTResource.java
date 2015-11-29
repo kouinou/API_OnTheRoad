@@ -1,9 +1,11 @@
 package com.ontheroad.resource;
 
 import com.google.gson.Gson;
+import com.ontheroad.dao.UtilisateurDao;
 import com.ontheroad.intf.DemoBusinessRESTResourceProxy;
 import com.ontheroad.intf.DemoHTTPHeaderNames;
 import com.ontheroad.model.Person;
+import com.ontheroad.model.Utilisateur;
 import com.ontheroad.service.DemoAuthenticator;
 
 import javax.ejb.Stateless;
@@ -35,15 +37,15 @@ public class DemoBusinessRESTResource implements DemoBusinessRESTResourceProxy {
             @FormParam( "username" ) String username,
             @FormParam( "password" ) String password ) {
 
-        DemoAuthenticator demoAuthenticator = DemoAuthenticator.getInstance();
-
+        //DemoAuthenticator demoAuthenticator = DemoAuthenticator.getInstance();
+        UtilisateurDao utilisateurDao = UtilisateurDao.getINSTANCE();
 
         try {
-            Map<String, String> authToken = demoAuthenticator.login(username, password);
+            Map<String, String> authTokenId = utilisateurDao.login(username, password);
 
             JsonObjectBuilder jsonObjBuilder = Json.createObjectBuilder();
-            jsonObjBuilder.add(DemoHTTPHeaderNames.USERID, Integer.parseInt(authToken.get(DemoHTTPHeaderNames.USERID)));
-            jsonObjBuilder.add(DemoHTTPHeaderNames.AUTH_TOKEN, authToken.get(DemoHTTPHeaderNames.AUTH_TOKEN));
+            jsonObjBuilder.add(DemoHTTPHeaderNames.USERID, Integer.parseInt(authTokenId.get(DemoHTTPHeaderNames.USERID)));
+            jsonObjBuilder.add(DemoHTTPHeaderNames.AUTH_TOKEN, authTokenId.get(DemoHTTPHeaderNames.AUTH_TOKEN));
 
             JsonObject jsonObj = jsonObjBuilder.build();
 

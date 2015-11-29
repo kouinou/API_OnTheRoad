@@ -1,23 +1,30 @@
 package com.ontheroad.resource;
 
+import com.google.gson.Gson;
 import com.ontheroad.model.Person;
 
+import javax.ejb.Local;
+import javax.ejb.Stateless;
 import javax.ws.rs.*;
+import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Created by Kouinou on 24/11/2015.
  */
-
+@Local
 @Path("/person")
+@Stateless( name = "PersonResource", mappedName = "ejb/PersonResource" )
 public class PersonResource {
 
-    @Path("get")
+    @Path("/get")
     @GET
     @Produces({MediaType.APPLICATION_JSON})  //add MediaType.APPLICATION_XML if you want XML as well (don't forget @XmlRootElement)
-    public Person getPerson(){
+    public Response getPerson(){
 
         Person p = new Person();
         p.setFirstName("Nabi");
@@ -35,8 +42,12 @@ public class PersonResource {
 
         System.out.println("REST call...");
 
-        //return Response.ok().entity(p).build();
-        return p;
+        Gson gson = new Gson();
+
+        // convert java object to JSON format,
+        // and returned as JSON formatted string
+        String json = gson.toJson(p);
+        return getNoCacheResponseBuilder(Response.Status.OK).entity( json ).build();
     }
 
     @POST
@@ -49,5 +60,14 @@ public class PersonResource {
         System.out.println("Last Name  = "+pers.getLastName());
 
         return "ok";
+    }
+
+    private Response.ResponseBuilder getNoCacheResponseBuilder( Response.Status status ) {
+        CacheControl cc = new CacheControl();
+        cc.setNoCache( true );
+        cc.setMaxAge( -1 );
+        cc.setMustRevalidate( true );
+
+        return Response.status( status ).cacheControl( cc );
     }
 }

@@ -28,6 +28,7 @@ public class DemoRESTResponseFilter implements ContainerResponseFilter {
         responseCtx.getHeaders().add( "Access-Control-Allow-Origin", "*" );    // You may further limit certain client IPs with Access-Control-Allow-Origin instead of '*'
         responseCtx.getHeaders().add( "Access-Control-Allow-Credentials", "true" );
         responseCtx.getHeaders().add( "Access-Control-Allow-Methods", "GET, POST, DELETE, PUT" );
-        responseCtx.getHeaders().add( "Access-Control-Allow-Headers", "user_id, auth_token" );
+        //responseCtx.getHeaders().add( "Access-Control-Allow-Headers", "*" );
+        responseCtx.getHeaders().add( "Access-Control-Allow-Headers", "user_id, auth_token, username, password" );
     }
 }

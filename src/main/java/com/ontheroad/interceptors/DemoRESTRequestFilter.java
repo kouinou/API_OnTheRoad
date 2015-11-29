@@ -1,5 +1,6 @@
 package com.ontheroad.interceptors;
 
+import com.ontheroad.dao.UtilisateurDao;
 import com.ontheroad.intf.DemoHTTPHeaderNames;
 import com.ontheroad.service.DemoAuthenticator;
 
@@ -24,6 +25,7 @@ public class DemoRESTRequestFilter implements ContainerRequestFilter {
     @Override
     public void filter( ContainerRequestContext requestCtx ) throws IOException {
 
+        requestCtx.getHeaders().add( "Access-Control-Allow-Origin", "*" );
         String path = requestCtx.getUriInfo().getPath();
         log.info( "Filtering request path: " + path );
 
@@ -35,7 +37,7 @@ public class DemoRESTRequestFilter implements ContainerRequestFilter {
         }
 
         // Then check is the service key exists and is valid.
-        DemoAuthenticator demoAuthenticator = DemoAuthenticator.getInstance();
+        UtilisateurDao utilisateurDao = UtilisateurDao.getINSTANCE();
         //String username = requestCtx.getHeaderString( DemoHTTPHeaderNames.USERNAME );
 
 
@@ -47,7 +49,7 @@ public class DemoRESTRequestFilter implements ContainerRequestFilter {
             String authToken = requestCtx.getHeaderString( "auth_token" );
 
             // if it isn't valid, just kick them out.
-            if ( !demoAuthenticator.isAuthTokenValid( Integer.parseInt(user_id), authToken ) ) {
+            if ( !utilisateurDao.isAuthTokenValid( Integer.parseInt(user_id), authToken ) ) {
                 requestCtx.abortWith( Response.status( Response.Status.UNAUTHORIZED ).build() );
             }
         }
